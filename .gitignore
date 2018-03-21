@@ -16,6 +16,8 @@ tags
 
 MANIFEST
 dist/
+build/
+*.egg-info/
 
 .coverage
 .coverage.*

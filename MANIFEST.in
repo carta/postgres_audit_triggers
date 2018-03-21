@@ -1,2 +1,4 @@
 include setup.py
+include README.md
+include LICENSE
 recursive-include postgres_audit_triggers *.sql *.py

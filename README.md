@@ -20,7 +20,7 @@ Usage
 ```
 # settings.py
 INSTALLED_APPS = {
-    'postgres_audit_triggers.apps.AuditConfig',
+    'postgres_audit_triggers',
     ...
 }
 ```
