@@ -1,0 +1,2 @@
+include setup.py
+recursive-include postgres_audit_triggers *.sql *.py

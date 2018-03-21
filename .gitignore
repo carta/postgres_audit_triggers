@@ -14,6 +14,9 @@ tags
 .env
 .python-version
 
+MANIFEST
+dist/
+
 .coverage
 .coverage.*
 *.un~

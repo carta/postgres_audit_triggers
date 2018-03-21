@@ -15,12 +15,12 @@ Installation
 Usage
 =====
 
-- Add the `audit` app to `INSTALLED_APPS` *before* any apps that will be audited:
+- Add the `postgres_audit_triggers` app to `INSTALLED_APPS` *before* any apps that will be audited:
 
 ```
 # settings.py
 INSTALLED_APPS = {
-    'audit.apps.AuditConfig',
+    'postgres_audit_triggers.apps.AuditConfig',
     ...
 }
 ```

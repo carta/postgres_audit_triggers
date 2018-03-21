@@ -15,7 +15,6 @@ setup(name='postgres_audit_triggers',
       license='MIT',
       url='https://github.com/carta/postgres_audit_triggers',
       description='Postgres audit triggers for Django',
-      py_modules=['postgres_audit_triggers'],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Console',
