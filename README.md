@@ -25,6 +25,8 @@ INSTALLED_APPS = {
 }
 ```
 
+- Run migrations: `python manage.py migrate postgres_audit_triggers`
+
 - Add `audit_trigger = True` to the Model Meta options of the models that will be audited:
 
 ```
