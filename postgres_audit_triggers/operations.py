@@ -12,6 +12,7 @@ class AddAuditTrigger(Operation):
     reduces_to_sql = True
     reversible = True
     option_name = 'audit_trigger'
+    enabled = True
 
     def __init__(self, model_name):
         self.name = model_name
@@ -22,8 +23,7 @@ class AddAuditTrigger(Operation):
 
     def state_forwards(self, app_label, state):
         model_state = state.models[app_label, self.model_name_lower]
-        audit_trigger = model_state.options.get(self.option_name, False)
-        model_state.options[self.option_name] = audit_trigger
+        model_state.options[self.option_name] = self.enabled
         state.reload_model(app_label, self.model_name_lower, delay=True)
 
     def database_forwards(
@@ -52,6 +52,8 @@ class AddAuditTrigger(Operation):
 
 
 class RemoveAuditTrigger(AddAuditTrigger):
+    enabled = False
+
     def database_forwards(
         self, app_label, schema_editor, from_state, to_state,
     ):
