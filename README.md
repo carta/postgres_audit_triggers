@@ -40,3 +40,16 @@ class MyAuditedModel(models.Model):
 
 - Make migrations: `python manage.py makemigrations`
 - Run migrations: `python manage.py migrate`
+
+Triggers introduce performance overhead. In certain cases, you may need to disable triggers while
+performing bulk operations. To turn off all triggers, a decorator is provided:
+
+```
+from postgres_audit_triggers.decorators import disable_triggers
+
+
+@disable_triggers
+def foo():
+    # auditing will not be triggered on any database operations performed here
+    Bar.objects.bulk_create(items)
+```
