@@ -31,8 +31,10 @@ class AddAuditTrigger(Operation):
     ):
         model = to_state.apps.get_model(app_label, self.name)
         table = model._meta.db_table
-        schema_editor.execute('SELECT to_regclass(\'audit.logged_actions\')')
-        if schema_editor.fetchone()[0]:
+        with schema_editor.connection.cursor() as cursor:
+            cursor.execute('SELECT to_regclass(\'audit.logged_actions\')')
+            has_audit = cursor.fetchone()[0]
+        if has_audit:
             schema_editor.execute(
                 'SELECT audit.audit_table(\'{}\')'.format(table),
             )
