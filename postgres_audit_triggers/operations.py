@@ -1,4 +1,5 @@
 from django.db.migrations.operations.base import Operation
+from django.db.utils import ProgrammingError
 from django.utils.functional import cached_property
 
 
@@ -31,21 +32,27 @@ class AddAuditTrigger(Operation):
     ):
         model = to_state.apps.get_model(app_label, self.name)
         table = model._meta.db_table
-        schema_editor.execute(
-            'SELECT audit.audit_table(\'{}\')'.format(table),
-        )
+        try:
+            schema_editor.execute(
+                'SELECT audit.audit_table(\'{}\')'.format(table),
+            )
+        except ProgrammingError:
+            pass
 
     def database_backwards(
         self, app_label, schema_editor, from_state, to_state,
     ):
         model = to_state.apps.get_model(app_label, self.name)
         table = model._meta.db_table
-        schema_editor.execute(
-            'DROP TRIGGER audit_trigger_row ON {}'.format(table),
-        )
-        schema_editor.execute(
-            'DROP TRIGGER audit_trigger_stm ON {}'.format(table),
-        )
+        try:
+            schema_editor.execute(
+                'DROP TRIGGER audit_trigger_row ON {}'.format(table),
+            )
+            schema_editor.execute(
+                'DROP TRIGGER audit_trigger_stm ON {}'.format(table),
+            )
+        except ProgrammingError:
+            pass
 
     def describe(self):
         return 'Add audit triggers on model {}'.format(self.name)
