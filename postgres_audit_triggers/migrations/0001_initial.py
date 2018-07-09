@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Audit',
             fields=[
-                ('event_id', models.BigIntegerField(primary_key=True, serialize=False)),
+                ('event_id',
+                 models.BigIntegerField(primary_key=True, serialize=False)),
                 ('schema_name', models.TextField()),
                 ('table_name', models.TextField()),
                 ('relid', models.IntegerField()),
@@ -32,10 +33,13 @@ class Migration(migrations.Migration):
                 ('client_port', models.IntegerField(null=True)),
                 ('client_query', models.TextField(null=True)),
                 ('action', models.TextField()),
-                ('row_data', django.contrib.postgres.fields.hstore.HStoreField(null=True)),
-                ('changed_fields', django.contrib.postgres.fields.hstore.HStoreField(null=True)),
+                ('row_data',
+                 django.contrib.postgres.fields.hstore.HStoreField(null=True)),
+                ('changed_fields',
+                 django.contrib.postgres.fields.hstore.HStoreField(null=True)),
                 ('statement_only', models.BooleanField()),
-                ('metadata', django.contrib.postgres.fields.hstore.HStoreField(null=True)),
+                ('metadata',
+                 django.contrib.postgres.fields.hstore.HStoreField(null=True)),
             ],
             options={
                 'db_table': '"audit"."logged_actions"',
