@@ -3,15 +3,8 @@ import sys
 from distutils.core import setup
 from setuptools import find_packages
 
-try:
-    from pypandoc import convert_file
-except ImportError:
-    print('warning: pypandoc not found, could not convert Markdown to RST.')
-
-    def convert_file(filename, to):
-        with open(filename, 'r') as f:
-            data = f.read()
-        return data
+with open('README.md', 'r') as f:
+    long_description = f.read()
 
 
 if sys.version_info < (3, 5):
@@ -20,13 +13,14 @@ if sys.version_info < (3, 5):
 
 
 setup(name='postgres-audit-triggers',
-      version='0.1.13',
+      version='1.0.0',
       author='Jared Hobbs',
       author_email='jared.hobbs@carta.com',
       license='MIT',
       url='https://github.com/carta/postgres_audit_triggers',
       description='Postgres audit triggers for Django',
-      long_description=convert_file('README.md', 'rst'),
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       packages=find_packages(),
       include_package_data=True,
       python_requires='>=3.5',

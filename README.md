@@ -20,10 +20,25 @@ Usage
 ```
 # settings.py
 INSTALLED_APPS = {
+    'django.contrib.postgres',
     'postgres_audit_triggers',
     ...
 }
 ```
+
+- Install the `postgres_audit_triggers` middleware:
+
+```
+# settings.py
+MIDDLEWARE = [
+    ...
+    'postgres_audit_triggers.middleware.AuditMiddleware',
+]
+```
+
+This middleware will add metadata to the audit row. To send metadata, the client must send a
+`POSTGRES_AUDIT_TRIGGERS_META` header in the request to your Django view. The data within
+that header must be JSON serializable to a python dictionary.
 
 - Run migrations: `python manage.py migrate postgres_audit_triggers`
 

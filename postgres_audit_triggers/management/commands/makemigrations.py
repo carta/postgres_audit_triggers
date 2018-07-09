@@ -22,9 +22,6 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
         self.generated_operations = {}
         self.altered_indexes = {}
 
-        # CUSTOM:
-        self.altered_audit_triggers = {}
-
         # Prepare some old/new state and model lists, separating
         # proxy models and ignoring unmigrated apps.
         self.old_apps = self.from_state.concrete_apps
@@ -50,8 +47,8 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
             if not model._meta.managed:
                 self.new_unmanaged_keys.add((al, mn))
             elif (
-                    al not in self.from_state.real_apps or
-                    (convert_apps and al in convert_apps)
+                al not in self.from_state.real_apps or
+                (convert_apps and al in convert_apps)
             ):
                 if model._meta.proxy:
                     self.new_proxy_keys.add((al, mn))
@@ -81,6 +78,7 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
         self.generate_removed_indexes()
 
         # CUSTOM:
+        self.altered_audit_triggers = {}
         self.create_altered_audit_triggers()
         self.generate_added_audit_triggers()
         self.generate_removed_audit_triggers()
