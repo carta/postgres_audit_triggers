@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.fields.hstore import HStoreField
 
 
@@ -25,3 +26,9 @@ class Audit(models.Model):
     class Meta:
         db_table = '"audit"."logged_actions"'
         managed = False
+        indexes = [
+            models.Index(fields=['table_name']),
+            models.Index(fields=['action_tstamp_tx']),
+            models.Index(fields=['action']),
+            GinIndex(fields=['row_data']),
+        ]
