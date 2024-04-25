@@ -21,39 +21,39 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
         # resolve dependencies caused by M2Ms and FKs.
         self.generated_operations = {}
         self.altered_indexes = {}
+        self.altered_constraints = {}
+        self.renamed_fields = {}
 
         # Prepare some old/new state and model lists, separating
         # proxy models and ignoring unmigrated apps.
-        self.old_apps = self.from_state.concrete_apps
-        self.new_apps = self.to_state.apps
         self.old_model_keys = set()
         self.old_proxy_keys = set()
         self.old_unmanaged_keys = set()
         self.new_model_keys = set()
         self.new_proxy_keys = set()
         self.new_unmanaged_keys = set()
-        for al, mn in self.from_state.models:
-            model = self.old_apps.get_model(al, mn)
-            if not model._meta.managed:
-                self.old_unmanaged_keys.add((al, mn))
-            elif al not in self.from_state.real_apps:
-                if model._meta.proxy:
-                    self.old_proxy_keys.add((al, mn))
+        for (app_label, model_name), model_state in self.from_state.models.items():
+            if not model_state.options.get("managed", True):
+                self.old_unmanaged_keys.add((app_label, model_name))
+            elif app_label not in self.from_state.real_apps:
+                if model_state.options.get("proxy"):
+                    self.old_proxy_keys.add((app_label, model_name))
                 else:
-                    self.old_model_keys.add((al, mn))
+                    self.old_model_keys.add((app_label, model_name))
 
-        for al, mn in self.to_state.models:
-            model = self.new_apps.get_model(al, mn)
-            if not model._meta.managed:
-                self.new_unmanaged_keys.add((al, mn))
-            elif (
-                al not in self.from_state.real_apps or
-                (convert_apps and al in convert_apps)
+        for (app_label, model_name), model_state in self.to_state.models.items():
+            if not model_state.options.get("managed", True):
+                self.new_unmanaged_keys.add((app_label, model_name))
+            elif app_label not in self.from_state.real_apps or (
+                convert_apps and app_label in convert_apps
             ):
-                if model._meta.proxy:
-                    self.new_proxy_keys.add((al, mn))
+                if model_state.options.get("proxy"):
+                    self.new_proxy_keys.add((app_label, model_name))
                 else:
-                    self.new_model_keys.add((al, mn))
+                    self.new_model_keys.add((app_label, model_name))
+
+        self.from_state.resolve_fields_and_relations()
+        self.to_state.resolve_fields_and_relations()
 
         # Renames have to come first
         self.generate_renamed_models()
@@ -69,13 +69,27 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
         self.generate_created_proxies()
         self.generate_altered_options()
         self.generate_altered_managers()
+        self.generate_altered_db_table_comment()
 
+        # Create the renamed fields and store them in self.renamed_fields.
+        # They are used by create_altered_indexes(), generate_altered_fields(),
+        # generate_removed_altered_index/unique_together(), and
+        # generate_altered_index/unique_together().
+        self.create_renamed_fields()
         # Create the altered indexes and store them in self.altered_indexes.
         # This avoids the same computation in generate_removed_indexes()
         # and generate_added_indexes().
         self.create_altered_indexes()
+        self.create_altered_constraints()
         # Generate index removal operations before field is removed
+        self.generate_removed_constraints()
         self.generate_removed_indexes()
+        # Generate field renaming operations.
+        self.generate_renamed_fields()
+        self.generate_renamed_indexes()
+        # Generate removal of foo together.
+        self.generate_removed_altered_unique_together()
+        self.generate_removed_altered_index_together()  # RemovedInDjango51Warning.
 
         # CUSTOM:
         self.altered_audit_triggers = {}
@@ -83,16 +97,16 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
         self.generate_added_audit_triggers()
         self.generate_removed_audit_triggers()
 
-        # Generate field operations
-        self.generate_renamed_fields()
+        # Generate field operations.
         self.generate_removed_fields()
         self.generate_added_fields()
         self.generate_altered_fields()
-        self.generate_altered_unique_together()
-        self.generate_altered_index_together()
-        self.generate_added_indexes()
-        self.generate_altered_db_table()
         self.generate_altered_order_with_respect_to()
+        self.generate_altered_unique_together()
+        self.generate_altered_index_together()  # RemovedInDjango51Warning.
+        self.generate_added_indexes()
+        self.generate_added_constraints()
+        self.generate_altered_db_table()
 
         self._sort_migrations()
         self._build_migration_list(graph)
@@ -123,16 +137,16 @@ class MigrationAutodetector(autodetector.MigrationAutodetector):
             })
 
     def generate_added_audit_triggers(self):
-        for (app_label, model_name), tr in self.altered_audit_triggers.items():
-            if tr['added_audit_trigger']:
+        for (app_label, model_name), alt_trigger in self.altered_audit_triggers.items():
+            if alt_trigger['added_audit_trigger']:
                 self.add_operation(
                     app_label,
                     AddAuditTrigger(model_name),
                 )
 
     def generate_removed_audit_triggers(self):
-        for (app_label, model_name), tr in self.altered_audit_triggers.items():
-            if tr['removed_audit_trigger']:
+        for (app_label, model_name), alt_trigger in self.altered_audit_triggers.items():
+            if alt_trigger['removed_audit_trigger']:
                 self.add_operation(
                     app_label,
                     RemoveAuditTrigger(model_name),
