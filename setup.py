@@ -13,7 +13,7 @@ if sys.version_info < (3, 5):
 
 
 setup(name='postgres-audit-triggers',
-      version='1.2.1',
+      version='1.2.2',
       author='Jared Hobbs',
       author_email='jared.hobbs@carta.com',
       license='MIT',
