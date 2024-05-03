@@ -56,7 +56,7 @@ workflows:
   version: 2
   ci-pipeline:
     jobs:
-      - authorize-push:
+      - authorize-publish:
           type: approval
       - publish:
           context: org-Global
