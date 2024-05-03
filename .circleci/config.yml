@@ -77,8 +77,6 @@ workflows:
               only: master
       - publish-dev:
           context: org-Global
-          requires:
-            - authorize-publish
           filters:
             branches:
               ignore: master
