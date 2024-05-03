@@ -54,7 +54,10 @@ jobs:
           command: sudo pip install --upgrade cloudsmith-cli
       - run-in-venv:
           title: Build package
-          command: make build-sdist
+          command: |
+            export DEV_VERSION_SUFFIX=.dev1+$(echo $CIRCLE_BRANCH | sed 's/[^0-9a-zA-Z\-_\.]//g')
+            echo "set DEV_VERSION_SUFFIX to ${DEV_VERSION_SUFFIX}"
+            make build-sdist
       - run-in-venv:
           title: Publish package to pip test cloudsmith
           command: make publish-dev
