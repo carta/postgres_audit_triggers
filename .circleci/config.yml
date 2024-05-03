@@ -4,11 +4,18 @@ aliases:
   - &environment
     docker:
       - image: circleci/python:3.10
+  - &set_venv
+    run:
+      name: Install dependencies
+      command: |
+        python3 -m venv .venv/
+        source .venv/bin/activate
 
 commands:
   setup:
     steps:
       - checkout
+      - *set_venv
 
   run-in-venv:
     parameters:
