@@ -1,0 +1,84 @@
+version: 2.1
+
+aliases:
+  - &environment
+    docker:
+      - image: circleci/python:3.10
+  - &set_venv
+    run:
+      name: Install dependencies
+      command: |
+        python3 -m venv .venv/
+        source .venv/bin/activate
+
+commands:
+  setup:
+    steps:
+      - checkout
+      - *set_venv
+
+  run-in-venv:
+    parameters:
+      title:
+        type: string
+      command:
+        type: string
+    steps:
+      - run:
+          name: << parameters.title >>
+          command: |
+            source .venv/bin/activate
+            << parameters.command >>
+
+jobs:
+  publish:
+    <<: *environment
+    steps:
+      - setup
+      - run-in-venv:
+          title: Install cloudsmith
+          command: sudo pip install --upgrade cloudsmith-cli
+      - run-in-venv:
+          title: Build package
+          command: make build-sdist
+      - run-in-venv:
+          title: Publish package to cloudsmith
+          command: make publish
+
+  publish-dev:
+    <<: *environment
+    steps:
+      - setup
+      - run-in-venv:
+          title: Install cloudsmith
+          command: sudo pip install --upgrade cloudsmith-cli
+      - run-in-venv:
+          title: Build package
+          command: |
+            export DEV_VERSION_SUFFIX=.dev1+$(echo $CIRCLE_BRANCH | sed 's/[^0-9a-zA-Z\-_\.]//g')
+            echo "set DEV_VERSION_SUFFIX to ${DEV_VERSION_SUFFIX}"
+            make build-sdist
+      - run-in-venv:
+          title: Publish package to pip test cloudsmith
+          command: make publish-dev
+
+workflows:
+  version: 2
+  ci-pipeline:
+    jobs:
+      - authorize-publish:
+          type: approval
+      - publish:
+          context: org-Global
+          requires:
+            - authorize-publish
+          filters:
+            branches:
+              only: master
+      - publish-dev:
+          context: org-Global
+          requires:
+            - authorize-publish
+          filters:
+            branches:
+              ignore: master
