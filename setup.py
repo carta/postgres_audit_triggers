@@ -13,7 +13,7 @@ if sys.version_info < (3, 5):
     print('Sorry, this module only works on 3.5+')
     sys.exit(1)
 
-VERSION = '1.2.1'
+VERSION = '1.2.2'
 dev_version_suffix = os.getenv("DEV_VERSION_SUFFIX", "")
 
 setup(name='postgres-audit-triggers',
